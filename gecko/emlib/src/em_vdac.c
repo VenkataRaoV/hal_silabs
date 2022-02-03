@@ -284,7 +284,7 @@ void VDAC_Init(VDAC_TypeDef *vdac, const VDAC_Init_TypeDef *init)
             | (((uint32_t)init->prescaler     << _VDAC_CFG_PRESC_SHIFT) & _VDAC_CFG_PRESC_MASK)
             | ((uint32_t)init->reference      << _VDAC_CFG_REFRSEL_SHIFT)
             | ((uint32_t)init->ch0ResetPre    << _VDAC_CFG_CH0PRESCRST_SHIFT)
-            | ((uint32_t)init->sineReset      << _VDAC_CFG_CH0PRESCRST_SHIFT)
+            | ((uint32_t)init->sineReset      << _VDAC_CFG_SINERESET_SHIFT)
             | ((uint32_t)init->sineEnable     << _VDAC_CFG_SINEMODE_SHIFT)
             | ((uint32_t)init->diff           << _VDAC_CFG_DIFF_SHIFT));
 
@@ -519,6 +519,9 @@ uint32_t VDAC_PrescaleCalc(uint32_t vdacFreq, bool syncMode, uint32_t hfperFreq)
  *   adjust the actual VDAC frequency lower than requested, the maximum prescaler
  *   value is returned resulting in a higher VDAC frequency than requested.
  *
+ * @param[in] vdac
+ *   Pointer to VDAC peripheral register block.
+ *
  * @param[in] vdacFreq VDAC frequency target. The frequency will automatically
  *   be adjusted to be below maximum allowed VDAC clock.
  *
@@ -526,16 +529,27 @@ uint32_t VDAC_PrescaleCalc(uint32_t vdacFreq, bool syncMode, uint32_t hfperFreq)
  *   A prescaler value to use for VDAC to achieve a clock value less than
  *   or equal to @p vdacFreq.
  ******************************************************************************/
-uint32_t VDAC_PrescaleCalc(uint32_t vdacFreq)
+uint32_t VDAC_PrescaleCalc(VDAC_TypeDef *vdac, uint32_t vdacFreq)
 {
-  uint32_t ret, refFreq;
+  uint32_t ret = 0;
+  uint32_t refFreq = 0;
 
   /* Make sure that the selected VDAC clock is below the maximum value. */
   if (vdacFreq > VDAC_MAX_CLOCK) {
     vdacFreq = VDAC_MAX_CLOCK;
   }
 
-  refFreq = CMU_ClockFreqGet(cmuClock_VDAC0);
+  if (vdac == VDAC0) {
+    refFreq = CMU_ClockFreqGet(cmuClock_VDAC0);
+  }
+#if defined(VDAC1)
+  else if (vdac == VDAC1) {
+    refFreq = CMU_ClockFreqGet(cmuClock_VDAC1);
+  }
+#endif
+  else {
+    EFM_ASSERT(0);
+  }
 
   /* Iterate to determine the best prescaler value. Start with the lowest */
   /* prescaler value to get the first equal or less VDAC         */
