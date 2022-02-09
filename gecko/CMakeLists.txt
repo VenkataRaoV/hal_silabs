@@ -20,22 +20,10 @@ endif()
 
 set(SILABS_GECKO_PART_NUMBER ${CONFIG_SOC_PART_NUMBER})
 
-if (${CONFIG_BOARD} STREQUAL "efr32bg_sltb010a")
-  set(SILABS_GECKO_BOARD "brd4184b")
-  set(SERIES "s2")
-  set(PRODUCT_NO "sdid205")
-endif()
-
 if (${CONFIG_BOARD} STREQUAL "efr32_radio_brd4186b")
   set(SILABS_GECKO_BOARD "brd4186b")
   set(SERIES "s2")
   set(PRODUCT_NO "sdid215")
-endif()
-
-if (${CONFIG_BOARD} STREQUAL "efm32gg_stk3701a")
-  set(SILABS_GECKO_BOARD "brd2204a")
-  set(SERIES "s1")
-  set(PRODUCT_NO "efm32gg")
 endif()
 
 zephyr_include_directories(
@@ -88,7 +76,11 @@ zephyr_sources_ifdef(CONFIG_SOC_GECKO_DEV_INIT     board/src/sl_board_init.c)
 zephyr_sources_ifdef(CONFIG_SOC_GECKO_DEV_INIT     board/src/sl_board_default_init.c)
 zephyr_sources_ifdef(CONFIG_SOC_GECKO_DEV_INIT     board/src/sl_board_control_gpio.c)
 zephyr_sources_ifdef(CONFIG_SOC_GECKO_DEV_INIT     service/power_manager/src/sl_power_manager.c)
+zephyr_sources_ifdef(CONFIG_SERIES_0     		   service/power_manager/src/sl_power_manager_hal_s0_s1.c)
+zephyr_sources_ifdef(CONFIG_SERIES_1     		   service/power_manager/src/sl_power_manager_hal_s0_s1.c)
+zephyr_sources_ifdef(CONFIG_SERIES_2		       service/power_manager/src/sl_power_manager_hal_s2.c)
 zephyr_sources_ifdef(CONFIG_SOC_GECKO_DEV_INIT     service/hfxo_manager/src/sl_hfxo_manager.c)
+zephyr_sources_ifdef(CONFIG_SERIES_2			   service/hfxo_manager/src/sl_hfxo_manager_hal_s2.c)
 zephyr_sources_ifdef(CONFIG_SOC_GECKO_DEV_INIT     common/src/sl_slist.c)
 
 zephyr_sources_ifdef(CONFIG_SOC_GECKO_CORE         emlib/src/em_core.c)
