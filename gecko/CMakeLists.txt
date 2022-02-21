@@ -79,10 +79,11 @@ zephyr_sources_ifdef(CONFIG_SOC_GECKO_DEV_INIT     service/power_manager/src/sl_
 zephyr_sources_ifdef(CONFIG_SERIES_0     		   service/power_manager/src/sl_power_manager_hal_s0_s1.c)
 zephyr_sources_ifdef(CONFIG_SERIES_1     		   service/power_manager/src/sl_power_manager_hal_s0_s1.c)
 zephyr_sources_ifdef(CONFIG_SERIES_2		       service/power_manager/src/sl_power_manager_hal_s2.c)
+zephyr_sources_ifdef(CONFIG_COUNTER_GECKO_STIMER		       service/sleeptimer/src/sl_sleeptimer_hal_sysrtc.c)
+zephyr_sources_ifdef(CONFIG_COUNTER_GECKO_STIMER		       service/sleeptimer/src/peripheral_sysrtc.c)
 zephyr_sources_ifdef(CONFIG_SOC_GECKO_DEV_INIT     service/hfxo_manager/src/sl_hfxo_manager.c)
 zephyr_sources_ifdef(CONFIG_SERIES_2			   service/hfxo_manager/src/sl_hfxo_manager_hal_s2.c)
 zephyr_sources_ifdef(CONFIG_SOC_GECKO_DEV_INIT     common/src/sl_slist.c)
-
 zephyr_sources_ifdef(CONFIG_SOC_GECKO_CORE         emlib/src/em_core.c)
 zephyr_sources_ifdef(CONFIG_SOC_GECKO_CRYOTIMER    emlib/src/em_cryotimer.c)
 zephyr_sources_ifdef(CONFIG_SOC_GECKO_EMU          emlib/src/em_emu.c)

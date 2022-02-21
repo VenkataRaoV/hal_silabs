@@ -58,6 +58,10 @@ void sleeptimer_hal_init_timer(void)
   sl_sysrtc_clear_group_interrupts(0u, _SYSRTC_GRP0_IF_MASK);
   sl_sysrtc_enable();
   sl_sysrtc_set_counter(0u);
+  
+ #if 1
+	CMU_ClockSelectSet(cmuClock_SYSRTC, cmuSelect_LFXO);
+#endif
 
   NVIC_ClearPendingIRQ(SYSRTC_APP_IRQn);
   NVIC_EnableIRQ(SYSRTC_APP_IRQn);
