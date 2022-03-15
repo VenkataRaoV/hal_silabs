@@ -49,5 +49,6 @@ sl_status_t sl_device_init_clocks(void)
 #if WDOG_COUNT > 1
 	CMU_ClockSelectSet(cmuClock_WDOG1, cmuSelect_LFXO);
 #endif
+
 	return SL_STATUS_OK;
 }
