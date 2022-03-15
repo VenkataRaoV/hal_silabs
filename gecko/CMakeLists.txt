@@ -44,6 +44,7 @@ zephyr_include_directories(
   service/device_init/config/${SERIES}/${PRODUCT_NO}
   board/inc
   board/config/${SILABS_GECKO_BOARD}
+  util/se_manager/inc
   )
 
 # The gecko SDK uses the cpu name to include the matching device header.
@@ -70,7 +71,7 @@ zephyr_sources_ifdef(CONFIG_SERIES_2     service/device_init/src/sl_device_init_
 zephyr_sources_ifdef(CONFIG_SERIES_0     service/device_init/src/sl_device_init_lfxo_s0.c)
 zephyr_sources_ifdef(CONFIG_SERIES_1     service/device_init/src/sl_device_init_lfxo_s1.c)
 zephyr_sources_ifdef(CONFIG_SERIES_2     service/device_init/src/sl_device_init_lfxo_s2.c)
-zephyr_sources_ifdef(CONFIG_SOC_GECKO_DEV_INIT     service/device_init/src/sl_device_init_clocks.c)
+zephyr_sources_ifdef(CONFIG_SOC_GECKO_DEV_INIT     service/device_init/config/${SERIES}/${PRODUCT_NO}/sl_device_init_clocks.c)
 zephyr_sources_ifdef(CONFIG_SOC_GECKO_DEV_INIT     service/device_init/src/sl_device_init_nvic.c)
 zephyr_sources_ifdef(CONFIG_SOC_GECKO_DEV_INIT     board/src/sl_board_init.c)
 zephyr_sources_ifdef(CONFIG_SOC_GECKO_DEV_INIT     board/src/sl_board_default_init.c)
@@ -83,6 +84,10 @@ zephyr_sources_ifdef(CONFIG_COUNTER_GECKO_STIMER		       service/sleeptimer/src/
 zephyr_sources_ifdef(CONFIG_COUNTER_GECKO_STIMER		       service/sleeptimer/src/peripheral_sysrtc.c)
 zephyr_sources_ifdef(CONFIG_SOC_GECKO_DEV_INIT     service/hfxo_manager/src/sl_hfxo_manager.c)
 zephyr_sources_ifdef(CONFIG_SERIES_2			   service/hfxo_manager/src/sl_hfxo_manager_hal_s2.c)
+zephyr_sources_ifdef(CONFIG_SOC_GECKO_SEMAILBOX			   util/se_manager/src/sl_se_manager.c)
+zephyr_sources_ifdef(CONFIG_SOC_GECKO_SEMAILBOX			   util/se_manager/src/sl_se_manager_attestation.c)
+zephyr_sources_ifdef(CONFIG_SOC_GECKO_SEMAILBOX			   util/se_manager/src/sl_se_manager_entropy.c)
+zephyr_sources_ifdef(CONFIG_SOC_GECKO_SEMAILBOX			   util/se_manager/src/em_se.c)
 zephyr_sources_ifdef(CONFIG_SOC_GECKO_DEV_INIT     common/src/sl_slist.c)
 zephyr_sources_ifdef(CONFIG_SOC_GECKO_CORE         emlib/src/em_core.c)
 zephyr_sources_ifdef(CONFIG_SOC_GECKO_CRYOTIMER    emlib/src/em_cryotimer.c)
