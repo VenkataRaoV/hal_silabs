@@ -27,6 +27,7 @@ Description:
    platform/service/power_manager
    platform/service/sleeptimer
    hardware/board
+   util/third_party/crypto/sl_component/se_manager
 
 Dependencies:
    This source code depends on headers and sources from Zephyr:
@@ -49,21 +50,20 @@ How to update
   * Install the new 32-bit MCU SDK version
   * The installation directory is <Simplicity Studio Path>/developer/sdks/gecko_sdk_suite/<version>
   * Replace the necessary files in ext/hal/silabs/gecko/Device, ext/hal/silabs/gecko/emlib for all EXX32 SoCs.
-  * Replace the files in ext/hal/silabs/gecko/common, ext/hal/silabs/gecko/service, and ext/hal/silabs/gecko/board for EFR32BG22 SoCs.
+  * Replace the files in ext/hal/silabs/gecko/common, ext/hal/silabs/gecko/service, and ext/hal/silabs/gecko/board for EFR32BG22, EFR32MG24 SoCs.
+  * Replace the files in ext/hal/silabs/gecko/util/third_party/crypto/sl_component/se_manager for EFR32MG24 SOcs.
   * Ensure that the CMakeLists and Kconfig files match the new version of the Gecko SDK
   
-What is different in EFR32BG22
+What is different in EFR32BG22 and EFR32MG24
 ++++++++++++++++++++++++++++++
   * To keep the device initialization similar to the sequence in simplicity studio, following directories are imported from GSDK.
     platform/service/device_init
     hardware/board
-  * hardware/board/src/sl_board_default_init.c file is generated from hardware/board/src/sl_board_default_init.c.jinja file.
-  * platform/service/device_init/src/sl_device_init_clocks.c in platform/service/device_init/src is generated from .jinja file 
-    available in platform/service/device_init/template.
-  * These .c files are generated from .jinja file using simplicity studio and are available under "autogen" folder
-    inside the project. These files should be merged with the existing files.
+  * service/device_init/config/${SERIES}/${PRODUCT_NO}/sl_device_init_clocks.c file is generated from .jinja file using simplicity studio 
+    and are available under "autogen" folder inside the project. These files should be merged with the existing files.
   * platform/service/power_manager and platform/service/hfxo_manager are used for power management functionality.
-  * platform/service/sleeptimer is used in power management functionality. This is built on top of RTCC driver for EFR32BG22 SoCs.
+  * platform/service/sleeptimer is used in power management functionality. This is built on top of RTCC driver for EFR32BG22 SoCs and SYSRTC driver for EFR32MG24 SOCs.
+  * util/third_party/crypto/sl_component/se_manager is used in TRNG functionality for EFR32MG24 SOCs. 
   
 The following folders are used in this HAL:
 
@@ -94,4 +94,7 @@ The following folders are used in this HAL:
 | hardware/board/                  | ext/hal/silabs/gecko/board                  | Contains board configuration and metadata files in                 |
 |                                  |                                             | config/$(GECKO_BOARD) for the EXX32 SoCs.                          |
 |                                  |                                             | All files are copied over. The files are not modified.             |
++----------------------------------+---------------------------------------------+--------------------------------------------------------------------+
+| util/third_party/crypto/         | ext/hal/silabs/gecko/util/                  | Contains apis used by SE mailbox for implementing TRNG             |           
+| sl_component/se_manager          | third_party/crypto/sl_component/se_manager  | functionality for EFR32MG24                                        |
 +----------------------------------+---------------------------------------------+--------------------------------------------------------------------+
