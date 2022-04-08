@@ -58,6 +58,10 @@ extern "C" {
 #define VSCALE_EM01_LOW_POWER           1 // Lynx value
 #define VSCALE_EM01_HIGH_PERFORMANCE    0 // Lynx value
 
+#if defined(LFRCO_PRECISION_MODE) && LFRCO_PRECISION_MODE
+#define PLFRCO_PRESENT
+#endif
+
 /*******************************************************************************
  ********************************   ENUMS   ************************************
  ******************************************************************************/
@@ -159,9 +163,13 @@ typedef enum {
   cmuClock_LSPCLK,                  /**< Low speed peripheral APB bus interface clock. */
   cmuClock_IADCCLK,                 /**< IADC clock. */
   cmuClock_EM01GRPACLK,             /**< EM01GRPA clock. */
+  cmuClock_EM01GRPCCLK,             /**< EM01GRPC clock. */
   cmuClock_EM23GRPACLK,             /**< EM23GRPA clock. */
   cmuClock_EM4GRPACLK,              /**< EM4GRPA clock. */
   cmuClock_LFRCO,                   /**< LFRCO clock. */
+  cmuClock_ULFRCO,                  /**< ULFRCO clock. */
+  cmuClock_LFXO,                    /**< LFXO clock. */
+  cmuClock_HFRCO0,                  /**< HFRCO0 clock. */
   cmuClock_WDOG0CLK,                /**< WDOG0 clock. */
 #if WDOG_COUNT > 1
   cmuClock_WDOG1CLK,                /**< WDOG1 clock. */
@@ -171,6 +179,10 @@ typedef enum {
   cmuClock_TRACECLK,                /**< Debug trace clock. */
 #endif
   cmuClock_RTCCCLK,                 /**< RTCC clock. */
+#if defined(LESENSE_PRESENT)
+  cmuClock_LESENSEHFCLK,
+  cmuClock_LESENSELFCLK,
+#endif
 
   /*********************/
   /* Peripheral clocks */
@@ -186,7 +198,8 @@ typedef enum {
   cmuClock_I2C0,                    /**< I2C0 clock. */
   cmuClock_I2C1,                    /**< I2C1 clock. */
   cmuClock_IADC0,                   /**< IADC clock. */
-  cmuClock_LDMA,                    /**< RTCC clock. */
+  cmuClock_LDMA,                    /**< LDMA clock. */
+  cmuClock_LDMAXBAR,                /**< LDMAXBAR clock. */
   cmuClock_LETIMER0,                /**< LETIMER clock. */
   cmuClock_PRS,                     /**< PRS clock. */
   cmuClock_RTCC,                    /**< RTCC clock. */
@@ -196,8 +209,12 @@ typedef enum {
   cmuClock_TIMER2,                  /**< TIMER2 clock. */
   cmuClock_TIMER3,                  /**< TIMER3 clock. */
   cmuClock_TIMER4,                  /**< TIMER4 clock. */
+  cmuClock_TIMER5,                  /**< TIMER5 clock. */
+  cmuClock_TIMER6,                  /**< TIMER6 clock. */
+  cmuClock_TIMER7,                  /**< TIMER7 clock. */
   cmuClock_BURAM,
   cmuClock_LESENSE,
+  cmuClock_LESENSEHF,               /**< LESENSEHF clock. */
 #if defined(USART0)
   cmuClock_USART0,                  /**< USART0 clock. */
 #endif
@@ -221,6 +238,7 @@ typedef enum {
 #endif
 #if defined(EUSART0)
   cmuClock_EUSART0,                 /**< EUSART0 clock. */
+  cmuClock_EUSART0CLK,
 #endif
 #if defined(EUSART1)
   cmuClock_EUSART1,                 /**< EUSART1 clock. */
@@ -228,9 +246,19 @@ typedef enum {
 #if defined(EUSART2)
   cmuClock_EUSART2,                 /**< EUSART2 clock. */
 #endif
+#if defined(EUSART3)
+  cmuClock_EUSART3,                 /**< EUSART3 clock. */
+#endif
+#if defined(EUSART4)
+  cmuClock_EUSART4,                 /**< EUSART4 clock. */
+#endif
   cmuClock_PCNT0,
   cmuClock_KEYSCAN,
-  cmuClock_HFPER
+  cmuClock_HFPER,
+  cmuClock_MSC,
+  cmuClock_DMEM,
+  cmuClock_SEMAILBOX,
+  cmuClock_VDAC0
 } CMU_Clock_TypeDef;
 
 /** OCELOT TEMPORARY DEFINE. */
@@ -279,6 +307,7 @@ typedef enum {
   cmuSelect_HCLK,        /**< Core and AHB bus interface clock. */
   cmuSelect_HCLKDIV1024, /**< Prescaled HCLK frequency clock. */
   cmuSelect_EM01GRPACLK, /**< EM01GRPA clock. */
+  cmuSelect_EM01GRPCCLK, /**< EM01GRPC clock. */
   cmuSelect_EM23GRPACLK, /**< EM23GRPACLK clock.*/
   cmuSelect_EXPCLK,      /**< Pin export clock. */
   cmuSelect_PRS          /**< PRS input as clock. */
@@ -447,7 +476,7 @@ typedef enum {
  ******************************************************************************/
 
 /** LFXO initialization structure. Init values should be obtained from a
-    configuration tool, app. note or xtal datasheet.  */
+    configuration tool, app. note or xtal data sheet.  */
 typedef struct {
   uint8_t   gain;                       /**< Startup gain. */
   uint8_t   capTune;                    /**< Internal capacitance tuning. */
@@ -479,7 +508,7 @@ typedef struct {
   }
 
 /** HFXO initialization structure. Init values should be obtained from a configuration tool,
-    app note or xtal datasheet  */
+    app note or xtal data sheet  */
 
 typedef struct {
   CMU_HfxoCbLsbTimeout_TypeDef        timeoutCbLsb;            /**< Core bias change timeout. */
@@ -598,6 +627,8 @@ void                       CMU_HFRCODPLLBandSet(CMU_HFRCODPLLFreq_TypeDef freq);
 uint32_t              CMU_HFRCOStartupDelayGet(void);
 void                  CMU_HFRCOStartupDelaySet(uint32_t delay);
 void                  CMU_HFXOInit(const CMU_HFXOInit_TypeDef *hfxoInit);
+void                  CMU_HFXOCTuneDeltaSet(int32_t delta);
+int32_t               CMU_HFXOCTuneDeltaGet(void);
 uint32_t              CMU_LCDClkFDIVGet(void);
 void                  CMU_LCDClkFDIVSet(uint32_t div);
 void                  CMU_LFXOInit(const CMU_LFXOInit_TypeDef *lfxoInit);
@@ -607,6 +638,7 @@ uint32_t              CMU_OscillatorTuningGet(CMU_Osc_TypeDef osc);
 void                  CMU_OscillatorTuningSet(CMU_Osc_TypeDef osc, uint32_t val);
 void                  CMU_UpdateWaitStates(uint32_t freq, int vscale);
 void                  CMU_UpdateWaitStates(uint32_t freq, int vscale);
+void                  CMU_LFXOPrecisionSet(uint16_t precision);
 bool                  CMU_PCNTClockExternalGet(unsigned int instance);
 void                  CMU_PCNTClockExternalSet(unsigned int instance, bool external);
 

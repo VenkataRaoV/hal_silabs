@@ -44,7 +44,9 @@ extern "C" {
 /***************************************************************************//**
  * @addtogroup timer
  * @{
- ******************************************************************************/
+ ******************************************************************************
+ * @deprecated
+ *   Deprecated macro TIMER_CH_VALID for SDID 80, new code should use TIMER_REF_CH_VALID.*/
 
 /*******************************************************************************
  *******************************   DEFINES   ***********************************
@@ -59,11 +61,22 @@ extern "C" {
 #if defined(_SILICON_LABS_32B_SERIES_0)
 #define TIMER_CH_VALID(ch)    ((ch) < 3)
 #elif defined(_SILICON_LABS_32B_SERIES_1)
+#if defined(_SILICON_LABS_GECKO_INTERNAL_SDID_80)
+#define TIMER_CH_VALID(ch) _Pragma("GCC warning \"'TIMER_CH_VALID' macro is deprecated for EFR32xG1, Use TIMER_REF_CH_VALID instead\"") ((ch) < 4)
+#else
 #define TIMER_CH_VALID(ch)    ((ch) < 4)
+#endif
 #elif defined(_SILICON_LABS_32B_SERIES_2)
 #define TIMER_CH_VALID(ch)    ((ch) < 3)
 #else
 #error "Unknown device. Undefined number of channels."
+#endif
+
+#if defined(_SILICON_LABS_GECKO_INTERNAL_SDID_80)
+#define TIMER_REF_CH_VALID(ref, ch) ((ref == TIMER0) ? ((ch) < 3) : ((ch) < 4))
+#define TIMER_REF_CH_VALIDATE(ref, ch) TIMER_REF_CH_VALID(ref, ch)
+#else
+#define TIMER_REF_CH_VALIDATE(ref, ch) TIMER_CH_VALID(ch)
 #endif
 
 /** @endcond */
@@ -234,10 +247,10 @@ typedef uint8_t TIMER_PRSSEL_TypeDef;
 #if defined (_TIMER_CC_CFG_INSEL_MASK)
 /** PRS input type */
 typedef enum {
-  timerPrsInputNone       =  0x0,                               /** No PRS input */
-  timerPrsInputSync       =  _TIMER_CC_CFG_INSEL_PRSSYNC,       /** Synchronous PRS selected */
-  timerPrsInputAsyncLevel =  _TIMER_CC_CFG_INSEL_PRSASYNCLEVEL, /** Asynchronous level PRS selected */
-  timerPrsInputAsyncPulse =  _TIMER_CC_CFG_INSEL_PRSASYNCPULSE, /** Asynchronous pulse PRS selected */
+  timerPrsInputNone       =  0x0,                               /**< No PRS input. */
+  timerPrsInputSync       =  _TIMER_CC_CFG_INSEL_PRSSYNC,       /**< Synchronous PRS selected. */
+  timerPrsInputAsyncLevel =  _TIMER_CC_CFG_INSEL_PRSASYNCLEVEL, /**< Asynchronous level PRS selected. */
+  timerPrsInputAsyncPulse =  _TIMER_CC_CFG_INSEL_PRSASYNCPULSE, /**< Asynchronous pulse PRS selected. */
 } TIMER_PrsInput_TypeDef;
 #endif
 
@@ -535,10 +548,10 @@ void TIMER_SyncWait(TIMER_TypeDef * timer);
 
 /***************************************************************************//**
  * @brief
- *   Validate TIMER register block pointer.
+ *   Validate the TIMER register block pointer.
  *
  * @param[in] ref
- *   Pointer to TIMER peripheral register block.
+ *   Pointer to the TIMER peripheral register block.
  *
  * @return
  *   True if ref points to a valid timer, false otherwise.
@@ -564,6 +577,9 @@ __STATIC_INLINE bool TIMER_Valid(const TIMER_TypeDef *ref)
 #if defined(TIMER6)
          || (ref == TIMER6)
 #endif
+#if defined(TIMER7)
+         || (ref == TIMER7)
+#endif
 #if defined(WTIMER0)
          || (ref == WTIMER0)
 #endif
@@ -581,10 +597,10 @@ __STATIC_INLINE bool TIMER_Valid(const TIMER_TypeDef *ref)
 
 /***************************************************************************//**
  * @brief
- *   Check if TIMER is valid and supports Dead Timer Insertion (DTI).
+ *   Check whether the TIMER is valid and supports Dead Timer Insertion (DTI).
  *
  * @param[in] ref
- *   Pointer to TIMER peripheral register block.
+ *   Pointer to the TIMER peripheral register block.
  *
  * @return
  *   True if ref points to a valid timer that supports DTI, false otherwise.
@@ -619,6 +635,9 @@ __STATIC_INLINE bool TIMER_SupportsDTI(const TIMER_TypeDef *ref)
 #if defined(TIMER6_DTI) && (TIMER6_DTI == 1)
          || (ref == TIMER6)
 #endif
+#if defined(TIMER7_DTI) && (TIMER7_DTI == 1)
+         || (ref == TIMER7)
+#endif
 #if defined(WTIMER0)
          || (ref == WTIMER0)
 #endif
@@ -630,7 +649,7 @@ __STATIC_INLINE bool TIMER_SupportsDTI(const TIMER_TypeDef *ref)
  *   Get the Max count of the timer.
  *
  * @param[in] ref
- *   Pointer to TIMER peripheral register block.
+ *   Pointer to the TIMER peripheral register block.
  *
  * @return
  *   The max count value of the timer. This is 0xFFFF for 16 bit timers
@@ -638,6 +657,8 @@ __STATIC_INLINE bool TIMER_SupportsDTI(const TIMER_TypeDef *ref)
  ******************************************************************************/
 __STATIC_INLINE uint32_t TIMER_MaxCount(const TIMER_TypeDef *ref)
 {
+  (void) ref;
+
 #if defined(WTIMER_PRESENT)
   if ((ref == WTIMER0)
 #if defined(WTIMER1)
@@ -652,18 +673,23 @@ __STATIC_INLINE uint32_t TIMER_MaxCount(const TIMER_TypeDef *ref)
       ) {
     return 0xFFFFFFFFUL;
   }
+#endif /* defined(WTIMER_PRESENT) */
+
+#if defined(_SILICON_LABS_32B_SERIES_2)
+  EFM_ASSERT(TIMER_NUM(ref) != -1);
+
+  return (uint32_t)((1ULL << TIMER_CNTWIDTH(TIMER_NUM(ref))) - 1);
 #else
-  (void) ref;
-#endif
   return 0xFFFFUL;
+#endif /* defined(_SILICON_LABS_32B_SERIES_2) */
 }
 
 /***************************************************************************//**
  * @brief
- *   Get compare/capture value for compare/capture channel.
+ *   Get compare/capture value for the compare/capture channel.
  *
  * @param[in] timer
- *   Pointer to TIMER peripheral register block.
+ *   Pointer to the TIMER peripheral register block.
  *
  * @param[in] ch
  *   Compare/capture channel to access.
@@ -686,10 +712,10 @@ __STATIC_INLINE uint32_t TIMER_CaptureGet(TIMER_TypeDef *timer, unsigned int ch)
 
 /***************************************************************************//**
  * @brief
- *   Get buffered compare/capture value for compare/capture channel.
+ *   Get the buffered compare/capture value for compare/capture channel.
  *
  * @param[in] timer
- *   Pointer to TIMER peripheral register block.
+ *   Pointer to the TIMER peripheral register block.
  *
  * @param[in] ch
  *   Compare/capture channel to access.
@@ -712,7 +738,7 @@ __STATIC_INLINE uint32_t TIMER_CaptureBufGet(TIMER_TypeDef *timer, unsigned int 
 
 /***************************************************************************//**
  * @brief
- *   Set compare value buffer for compare/capture channel when operating in
+ *   Set the compare value buffer for the compare/capture channel when operating in
  *   compare or PWM mode.
  *
  * @details
@@ -721,7 +747,7 @@ __STATIC_INLINE uint32_t TIMER_CaptureBufGet(TIMER_TypeDef *timer, unsigned int 
  *   the last event.
  *
  * @param[in] timer
- *   Pointer to TIMER peripheral register block.
+ *   Pointer to the TIMER peripheral register block.
  *
  * @param[in] ch
  *   Compare/capture channel to access.
@@ -744,11 +770,11 @@ __STATIC_INLINE void TIMER_CompareBufSet(TIMER_TypeDef *timer,
 
 /***************************************************************************//**
  * @brief
- *   Set compare value for compare/capture channel when operating in compare
+ *   Set the compare value for compare/capture channel when operating in compare
  *   or PWM mode.
  *
  * @param[in] timer
- *   Pointer to TIMER peripheral register block.
+ *   Pointer to the TIMER peripheral register block.
  *
  * @param[in] ch
  *   Compare/capture channel to access.
@@ -771,7 +797,7 @@ __STATIC_INLINE void TIMER_CompareSet(TIMER_TypeDef *timer,
 
 /***************************************************************************//**
  * @brief
- *   Get TIMER counter value.
+ *   Get the TIMER counter value.
  *
  * @param[in] timer
  *   Pointer to TIMER peripheral register block.
@@ -786,10 +812,10 @@ __STATIC_INLINE uint32_t TIMER_CounterGet(TIMER_TypeDef *timer)
 
 /***************************************************************************//**
  * @brief
- *   Set TIMER counter value.
+ *   Set the TIMER counter value.
  *
  * @param[in] timer
- *   Pointer to TIMER peripheral register block.
+ *   Pointer to the TIMER peripheral register block.
  *
  * @param[in] val
  *   Value to set counter to.
@@ -819,7 +845,7 @@ __STATIC_INLINE void TIMER_CounterSet(TIMER_TypeDef *timer, uint32_t val)
  *   Start/stop TIMER.
  *
  * @param[in] timer
- *   Pointer to TIMER peripheral register block.
+ *   Pointer to the TIMER peripheral register block.
  *
  * @param[in] enable
  *   Set to true to enable counting; set to false otherwise.
@@ -848,7 +874,7 @@ void TIMER_InitDTI(TIMER_TypeDef *timer, const TIMER_InitDTI_TypeDef *init);
  *   Enable or disable DTI unit.
  *
  * @param[in] timer
- *   Pointer to TIMER peripheral register block.
+ *   Pointer to the TIMER peripheral register block.
  *
  * @param[in] enable
  *   Set to true to enable DTI unit; set to false otherwise.
@@ -888,7 +914,7 @@ __STATIC_INLINE void TIMER_EnableDTI(TIMER_TypeDef *timer, bool enable)
  *   Event bits are not cleared by this function.
  *
  * @param[in] timer
- *   Pointer to TIMER peripheral register block.
+ *   Pointer to the TIMER peripheral register block.
  *
  * @return
  *   Status of the DTI fault source flags. Returns one or more valid
@@ -905,7 +931,7 @@ __STATIC_INLINE uint32_t TIMER_GetDTIFault(TIMER_TypeDef *timer)
  *   Clear DTI fault source flags.
  *
  * @param[in] timer
- *   Pointer to TIMER peripheral register block.
+ *   Pointer to the TIMER peripheral register block.
  *
  * @param[in] flags
  *   DTI fault source(s) to clear. Use one or more valid DTI fault
@@ -928,7 +954,7 @@ __STATIC_INLINE void TIMER_ClearDTIFault(TIMER_TypeDef *timer, uint32_t flags)
  *   Clear one or more pending TIMER interrupts.
  *
  * @param[in] timer
- *   Pointer to TIMER peripheral register block.
+ *   Pointer to the TIMER peripheral register block.
  *
  * @param[in] flags
  *   Pending TIMER interrupt source(s) to clear. Use one or more valid
@@ -948,7 +974,7 @@ __STATIC_INLINE void TIMER_IntClear(TIMER_TypeDef *timer, uint32_t flags)
  *   Disable one or more TIMER interrupts.
  *
  * @param[in] timer
- *   Pointer to TIMER peripheral register block.
+ *   Pointer to the TIMER peripheral register block.
  *
  * @param[in] flags
  *   TIMER interrupt source(s) to disable. Use one or more valid
@@ -970,7 +996,7 @@ __STATIC_INLINE void TIMER_IntDisable(TIMER_TypeDef *timer, uint32_t flags)
 
  *
  * @param[in] timer
- *   Pointer to TIMER peripheral register block.
+ *   Pointer to the TIMER peripheral register block.
  *
  * @param[in] flags
  *   TIMER interrupt source(s) to enable. Use one or more valid
@@ -989,7 +1015,7 @@ __STATIC_INLINE void TIMER_IntEnable(TIMER_TypeDef *timer, uint32_t flags)
  *   Event bits are not cleared by this function.
  *
  * @param[in] timer
- *   Pointer to TIMER peripheral register block.
+ *   Pointer to the TIMER peripheral register block.
  *
  * @return
  *   TIMER interrupt source(s) pending. Returns one or more valid
@@ -1006,7 +1032,7 @@ __STATIC_INLINE uint32_t TIMER_IntGet(TIMER_TypeDef *timer)
  *   Useful for handling more interrupt sources in the same interrupt handler.
  *
  * @param[in] timer
- *   Pointer to TIMER peripheral register block.
+ *   Pointer to the TIMER peripheral register block.
  *
  * @note
  *   Interrupt flags are not cleared by this function.
@@ -1036,7 +1062,7 @@ __STATIC_INLINE uint32_t TIMER_IntGetEnabled(TIMER_TypeDef *timer)
  *   Set one or more pending TIMER interrupts from SW.
  *
  * @param[in] timer
- *   Pointer to TIMER peripheral register block.
+ *   Pointer to the TIMER peripheral register block.
  *
  * @param[in] flags
  *   TIMER interrupt source(s) to set to pending. Use one or more valid
@@ -1054,7 +1080,7 @@ __STATIC_INLINE void TIMER_IntSet(TIMER_TypeDef *timer, uint32_t flags)
 #if defined(_TIMER_DTLOCK_LOCKKEY_LOCK)
 /***************************************************************************//**
  * @brief
- *   Lock some of the TIMER registers in order to protect them from being
+ *   Lock some TIMER registers to protect them from being
  *   modified.
  *
  * @details
@@ -1082,7 +1108,7 @@ void TIMER_Reset(TIMER_TypeDef *timer);
 
 /***************************************************************************//**
  * @brief
- *   Set top value buffer for timer.
+ *   Set the top value buffer for the timer.
  *
  * @details
  *   When top value buffer register is updated, value is loaded into
@@ -1090,7 +1116,7 @@ void TIMER_Reset(TIMER_TypeDef *timer);
  *   in order to update top value safely when timer is running.
  *
  * @param[in] timer
- *   Pointer to TIMER peripheral register block.
+ *   Pointer to the TIMER peripheral register block.
  *
  * @param[in] val
  *   Value to set in top value buffer register.
@@ -1107,10 +1133,10 @@ __STATIC_INLINE void TIMER_TopBufSet(TIMER_TypeDef *timer, uint32_t val)
 
 /***************************************************************************//**
  * @brief
- *   Get top value setting for timer.
+ *   Get the top value setting for the timer.
  *
  * @param[in] timer
- *   Pointer to TIMER peripheral register block.
+ *   Pointer to the TIMER peripheral register block.
  *
  * @return
  *   Current top value.
@@ -1122,10 +1148,10 @@ __STATIC_INLINE uint32_t TIMER_TopGet(TIMER_TypeDef *timer)
 
 /***************************************************************************//**
  * @brief
- *   Set top value for timer.
+ *   Set the top value for timer.
  *
  * @param[in] timer
- *   Pointer to TIMER peripheral register block.
+ *   Pointer to the TIMER peripheral register block.
  *
  * @param[in] val
  *   Value to set in top value register.
@@ -1146,7 +1172,7 @@ __STATIC_INLINE void TIMER_TopSet(TIMER_TypeDef *timer, uint32_t val)
  *   Unlock TIMER to enable writing to locked registers again.
  *
  * @param[in] timer
- *   Pointer to TIMER peripheral register block.
+ *   Pointer to the TIMER peripheral register block.
  ******************************************************************************/
 __STATIC_INLINE void TIMER_Unlock(TIMER_TypeDef *timer)
 {
